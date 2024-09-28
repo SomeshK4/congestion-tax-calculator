@@ -1,11 +1,9 @@
-# Congestion Tax Calculator
-
-Welcome the Volvo Cars Congestion Tax Calculator assignment.
-
-This repository contains a developer [assignment](ASSIGNMENT.md) used as a basis for candidate intervew and evaluation.
 
 ## Introduction
 The Congestion Tax Calculator is a simple application that calculates the congestion tax for vehicles. The application is built using Spring Boot and uses a Postgres database to store the data.
+
+## Problem Statement
+To find out more about the requirement refer [assignment](ASSIGNMENT.md).
 
 ## Assumptions
   - day before public holiday is also exempted from congestion tax. I have added few public holiday for Gothenburg, Sweden in the `exemption_periods` table in the database. Also I have added a day before public holiday with description as "Day before public holiday" in the exemption period table.Feel free to modify the script to add more public holidays.
