@@ -1,0 +1,40 @@
+{
+	"info": {
+		"_postman_id": "d7d2fde6-ed11-4505-8e03-2a30123944c8",
+		"name": "Congestion-tax-calculator",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30858353"
+	},
+	"item": [
+		{
+			"name": "New Request",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"vehicleType\":\"Car\",\r\n    \"entryTimes\" : [\r\n        \"2013-07-19T06:00:00\",\r\n        \"2013-07-19T07:10:00\",\r\n        \"2013-09-19T08:05:00\",\r\n        \"2013-09-19T15:00:00\",\r\n        \"2013-09-19T15:35:00\",\r\n        \"2013-09-16T14:25:00\",\r\n        \"2013-09-19T14:07:27\",\r\n        \"2013-09-18T18:29:00\"\r\n        ],\r\n     \"city\": \"Gothenburg\",\r\n     \"country\": \"Sweden\"\r\n    \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/congestion-taxes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"congestion-taxes"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

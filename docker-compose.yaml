@@ -1,0 +1,15 @@
+
+services:
+  postgres:
+    container_name: postgres_congestiontaxes
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: congestiontaxes
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /data/postgres
+    #volumes:
+      #- ./postgres/data:/data/postgres
+    ports:
+      - "5432:5432"
