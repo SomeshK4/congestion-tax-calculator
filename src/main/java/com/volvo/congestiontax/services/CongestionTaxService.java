@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Somesh Kumar
@@ -44,13 +45,19 @@ public class CongestionTaxService {
 
         boolean isVehicleExempted = isVehicleExempted(cityEntity.getVehicles(), congestionTaxRequest.getVehicleType());
         if (!isVehicleExempted) {
-            Collections.sort(congestionTaxRequest.getEntryTimes());  //Sort the entry times in ascending order
+            //Collections.sort(congestionTaxRequest.getEntryTimes());  //Sort the entry times in ascending order
+            //Collections.sort(congestionTaxRequest.getEntryTimes());  //Sort the entry times in ascending order
             List<ExemptionPeriodEntity> exemptionPeriods = cityEntity.getExemptionPeriods();
             congestionTaxRequest.getEntryTimes()
                     .removeIf(entryTime ->
                             isNonTaxableDate(cityEntity, exemptionPeriods, entryTime.toLocalDate())); //Remove non-taxable dates
 
+            //First method to calculate congestion tax by day
             Map<String, BigDecimal> congestionTaxesByDay = calculateCongestionTaxByDay(congestionTaxRequest.getEntryTimes(), cityEntity, new HashMap<>());
+
+            //Second method to calculate congestion tax by day
+            //Map<String, BigDecimal> congestionTaxesByDay = calculateCongestionTaxByDay(congestionTaxRequest.getEntryTimes(), cityEntity);
+
             totalTax = congestionTaxesByDay.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add); //Calculate total tax for all days, can be removed if not needed in the response
 
             log.info("[CongestionTaxService] [calculateCongestionTax] Total Tax: {}", totalTax);
@@ -69,6 +76,59 @@ public class CongestionTaxService {
                 .country(congestionTaxRequest.getCountry())
                 .vehicleType(congestionTaxRequest.getVehicleType())
                 .build();
+    }
+
+    public Map<String, BigDecimal> calculateCongestionTaxByDay(List<LocalDateTime> entryTimes, CityEntity cityEntity) {
+        // Group entry times by date for daily calculation
+        Map<LocalDate, List<LocalDateTime>> entriesByDate = entryTimes.stream()
+                .collect(Collectors.groupingBy(LocalDateTime::toLocalDate));
+
+        Map<String, BigDecimal> taxPerDay = new HashMap<>();
+
+        // Process each day separately
+        entriesByDate.forEach((date, times) -> {
+            BigDecimal totalTaxForDay = calculateTaxForDay(times, cityEntity);
+
+            // Apply daily charge cap
+            BigDecimal dailyChargeCap = cityEntity.getDailyChargeCap();
+            if (dailyChargeCap != null && totalTaxForDay.compareTo(dailyChargeCap) > 0) {
+                totalTaxForDay = dailyChargeCap;
+            }
+
+            // Store the result using date as the key
+            taxPerDay.put(date.toString(), totalTaxForDay);
+        });
+
+        return taxPerDay;
+    }
+
+    private BigDecimal calculateTaxForDay(List<LocalDateTime> entryTimes, CityEntity cityEntity) {
+        // Sort the times for a single day in chronological order
+        entryTimes.sort(Comparator.naturalOrder());
+
+        BigDecimal totalTaxForDay = BigDecimal.ZERO;
+        LocalDateTime lastProcessedTime = null;
+        BigDecimal maxTaxInPeriod = BigDecimal.ZERO;
+
+        for (LocalDateTime currentTime : entryTimes) {
+            if (lastProcessedTime == null || Duration.between(lastProcessedTime, currentTime).toMinutes() > cityEntity.getSingleChargeMinutes()) {
+                // If outside the 60-minute window or first entry, finalize the tax for the last window
+                totalTaxForDay = totalTaxForDay.add(maxTaxInPeriod);
+                maxTaxInPeriod = BigDecimal.ZERO;
+                lastProcessedTime = currentTime;
+            }
+
+            // Calculate the tax for the current entry time and compare with the max tax in this period
+            BigDecimal currentTax = getTaxAmountAsPerTaxRules(currentTime.toLocalTime(), cityEntity.getTaxRules());
+            if (currentTax.compareTo(maxTaxInPeriod) > 0) {
+                maxTaxInPeriod = currentTax;
+            }
+        }
+
+        // Add the final period's max tax to the total for the day
+        totalTaxForDay = totalTaxForDay.add(maxTaxInPeriod);
+
+        return totalTaxForDay;
     }
 
 
