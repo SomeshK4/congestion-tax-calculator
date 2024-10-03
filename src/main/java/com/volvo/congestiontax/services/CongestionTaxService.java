@@ -46,7 +46,7 @@ public class CongestionTaxService {
         boolean isVehicleExempted = isVehicleExempted(cityEntity.getVehicles(), congestionTaxRequest.getVehicleType());
         if (!isVehicleExempted) {
             //Collections.sort(congestionTaxRequest.getEntryTimes());  //Sort the entry times in ascending order
-            //Collections.sort(congestionTaxRequest.getEntryTimes());  //Sort the entry times in ascending order
+            Collections.sort(congestionTaxRequest.getEntryTimes());  //Sort the entry times in ascending order
             List<ExemptionPeriodEntity> exemptionPeriods = cityEntity.getExemptionPeriods();
             congestionTaxRequest.getEntryTimes()
                     .removeIf(entryTime ->
